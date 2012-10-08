@@ -181,6 +181,7 @@ class FileStoreBase : public Store {
   bool createSymlink;
   bool writeStats;
   bool rotateOnReopen;
+  bool rotateIfData;
 
   // State
   unsigned long currentSize;
