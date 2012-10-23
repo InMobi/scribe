@@ -226,6 +226,7 @@ FileStoreBase::FileStoreBase(StoreQueue* storeq,
     currentSize(0),
     eventSize(0),
     lastRollTime(0),
+    openForRotateIfDataTrue(false),
     eventsWritten(0) {
 }
 
@@ -397,7 +398,17 @@ void FileStoreBase::copyCommon(const FileStoreBase *base) {
 }
 
 bool FileStoreBase::open() {
-  return openInternal(rotateOnReopen, NULL);
+  /*if(rotateIfData){
+   if(openForRotateIfDataTrue){
+      openForRotateIfDataTrue = false;
+      return openInternal(true, rotateOnReopen, NULL);
+    }
+    else
+      return openInternal(false, rotateOnReopen, NULL);
+  }
+  else{*/
+    return openInternal(true, rotateOnReopen, NULL);
+ //}
 }
 
 // Decides whether conditions are sufficient for us to roll files
@@ -427,17 +438,22 @@ void FileStoreBase::periodicCheck() {
         break;
     }
     // Do periodic roll up only if you have some messages	
-    if (rotate) {
+    /*if (rotate) {
     rotate = rotateIfData ? (currentSize > 0) : rotate;
-    }
+    }*/
   }
 
   if (rotate) {
-    rotateFile(rawtime);
+    if(rotateIfData){
+      rotateFile(false, rawtime);
+    }
+    else{
+      rotateFile(true, rawtime);
+    }
   }
 }
 
-void FileStoreBase::rotateFile(time_t currentTime) {
+void FileStoreBase::rotateFile(bool openNewFile, time_t currentTime) {
   struct tm timeinfo;
 
   currentTime = currentTime > 0 ? currentTime : time(NULL);
@@ -449,7 +465,7 @@ void FileStoreBase::rotateFile(time_t currentTime) {
            maxSize == ULONG_MAX ? 0 : maxSize);
 
   printStats();
-  openInternal(true, &timeinfo);
+  openInternal(openNewFile, true, &timeinfo);
 }
 
 string FileStoreBase::makeFullFilename(int suffix, struct tm* creation_time,
@@ -691,7 +707,7 @@ void FileStore::configure(pStoreConf configuration, pStoreConf parent) {
   encodeBase64Flag = inttemp ? true : false;
 }
 
-bool FileStore::openInternal(bool incrementFilename, struct tm* current_time) {
+bool FileStore::openInternal(bool openNewFile, bool incrementFilename, struct tm* current_time) {
   bool success = false;
   struct tm timeinfo;
 
@@ -736,6 +752,7 @@ bool FileStore::openInternal(bool incrementFilename, struct tm* current_time) {
       closeWriteFile();
     }
 
+    if(openNewFile){
     writeFile = FileInterface::createFileInterface(fsType, file, isBufferFile);
     if (!writeFile) {
       LOG_OPER("[%s] Failed to create file <%s> of type <%s> for writing",
@@ -786,7 +803,7 @@ bool FileStore::openInternal(bool incrementFilename, struct tm* current_time) {
       currentFilename = file;
       setStatus("");
     }
-
+    }
   } catch(const std::exception& e) {
     LOG_OPER("[%s] Failed to create/open file of type <%s> for writing",
              categoryHandled.c_str(), fsType.c_str());
@@ -862,11 +879,17 @@ shared_ptr<Store> FileStore::copy(const std::string &category) {
 bool FileStore::handleMessages(boost::shared_ptr<logentry_vector_t> messages) {
 
   if (!isOpen()) {
+    /*if(rotateIfData){
+      //openForRotateIfDataTrue = true;
+      bool isCreated = openInternal(true, true, NULL);
+    }
+    else {*/
     if (!open()) {
       LOG_OPER("[%s] File failed to open FileStore::handleMessages()",
                categoryHandled.c_str());
       return false;
     }
+    //}
   }
 
   // write messages to current file
@@ -983,7 +1006,10 @@ bool FileStore::writeMessages(boost::shared_ptr<logentry_vector_t> messages,
 
       // rotate file if large enough and not writing to a separate file
       if ((currentSize > maxSize && maxSize != 0 )&& !file) {
-        rotateFile();
+        if(rotateIfData)
+          rotateFile(false);
+        else
+          rotateFile(true);
         write_file = writeFile;
       }
     }
@@ -1210,14 +1236,17 @@ bool ThriftFileStore::handleMessages(boost::shared_ptr<logentry_vector_t> messag
   // We can't wait until periodicCheck because we could be getting
   // a lot of data all at once in a failover situation
   if (currentSize > maxSize && maxSize != 0) {
-    rotateFile();
+    if(rotateIfData)
+      rotateFile(false);
+    else
+      rotateFile(true);
   }
 
   return true;
 }
 
 bool ThriftFileStore::open() {
-  return openInternal(true, NULL);
+  return openInternal(true, true, NULL);
 }
 
 bool ThriftFileStore::isOpen() {
@@ -1244,7 +1273,7 @@ void ThriftFileStore::flush() {
   return;
 }
 
-bool ThriftFileStore::openInternal(bool incrementFilename, struct tm* current_time) {
+bool ThriftFileStore::openInternal(bool openNewFile, bool incrementFilename, struct tm* current_time) {
   struct tm timeinfo;
 
   if (!current_time) {
