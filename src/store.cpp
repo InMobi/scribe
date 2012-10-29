@@ -398,17 +398,17 @@ void FileStoreBase::copyCommon(const FileStoreBase *base) {
 }
 
 bool FileStoreBase::open() {
-  /*if(rotateIfData){
-   if(openForRotateIfDataTrue){
+  if(rotateIfData){
+    if(openForRotateIfDataTrue){
       openForRotateIfDataTrue = false;
       return openInternal(true, rotateOnReopen, NULL);
     }
     else
       return openInternal(false, rotateOnReopen, NULL);
   }
-  else{*/
+  else{
     return openInternal(true, rotateOnReopen, NULL);
- //}
+  }
 }
 
 // Decides whether conditions are sufficient for us to roll files
@@ -437,10 +437,6 @@ void FileStoreBase::periodicCheck() {
       case ROLL_NEVER:
         break;
     }
-    // Do periodic roll up only if you have some messages	
-    /*if (rotate) {
-    rotate = rotateIfData ? (currentSize > 0) : rotate;
-    }*/
   }
 
   if (rotate) {
@@ -879,17 +875,15 @@ shared_ptr<Store> FileStore::copy(const std::string &category) {
 bool FileStore::handleMessages(boost::shared_ptr<logentry_vector_t> messages) {
 
   if (!isOpen()) {
-    /*if(rotateIfData){
-      //openForRotateIfDataTrue = true;
-      bool isCreated = openInternal(true, true, NULL);
+    if(rotateIfData){
+      openForRotateIfDataTrue = true;
     }
-    else {*/
+    
     if (!open()) {
       LOG_OPER("[%s] File failed to open FileStore::handleMessages()",
                categoryHandled.c_str());
       return false;
     }
-    //}
   }
 
   // write messages to current file
