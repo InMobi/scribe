@@ -1,8 +1,14 @@
+scribe-server-hdfs-orig (0.3) lucid; urgency=low
+
+  * provide num_messages writte and num_bytes written to a file store
+
+ -- Platform Engineering <platform-engg@inmobi.com> Mon, 29 Oct 2012 12:10:45  +0530
+
 scribe-server-hdfs-orig (0.2.8-1) lucid; urgency=low
 
   * write queue size to scribe log when a request in throttled.
 
- -- Platform Engineering <platform-engg@inmobi.com> Fri, 12 Oct 2012 11:37:00  +0530 
+ -- Platform Engineering <platform-engg@inmobi.com> Fri, 12 Oct 2012 11:37:00  +0530
 
 scribe-server-hdfs-orig (0.2.7-1) lucid; urgency=low
 
