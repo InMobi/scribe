@@ -184,7 +184,6 @@ class FileStoreBase : public Store {
   bool rotateIfData;
 
   // State
-  bool openForRotateIfDataTrue;
   unsigned long currentSize;
   time_t lastRollTime;         // either hour, day or time since epoch,
                                // depending on rollPeriod

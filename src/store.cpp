@@ -226,7 +226,6 @@ FileStoreBase::FileStoreBase(StoreQueue* storeq,
     currentSize(0),
     eventSize(0),
     lastRollTime(0),
-    openForRotateIfDataTrue(false),
     eventsWritten(0) {
 }
 
@@ -398,17 +397,8 @@ void FileStoreBase::copyCommon(const FileStoreBase *base) {
 }
 
 bool FileStoreBase::open() {
-  if(rotateIfData){
-    if(openForRotateIfDataTrue){
-      openForRotateIfDataTrue = false;
-      return openInternal(true, rotateOnReopen, NULL);
-    }
-    else
-      return openInternal(false, rotateOnReopen, NULL);
-  }
-  else{
+  if (!rotateIfData)
     return openInternal(true, rotateOnReopen, NULL);
-  }
 }
 
 // Decides whether conditions are sufficient for us to roll files
@@ -875,11 +865,8 @@ shared_ptr<Store> FileStore::copy(const std::string &category) {
 bool FileStore::handleMessages(boost::shared_ptr<logentry_vector_t> messages) {
 
   if (!isOpen()) {
-    if(rotateIfData){
-      openForRotateIfDataTrue = true;
-    }
-    
-    if (!open()) {
+      
+    if (!openInternal(true, rotateOnReopen, NULL)) {
       LOG_OPER("[%s] File failed to open FileStore::handleMessages()",
                categoryHandled.c_str());
       return false;
@@ -1230,7 +1217,7 @@ bool ThriftFileStore::handleMessages(boost::shared_ptr<logentry_vector_t> messag
   // We can't wait until periodicCheck because we could be getting
   // a lot of data all at once in a failover situation
   if (currentSize > maxSize && maxSize != 0) {
-    if(rotateIfData)
+    if (rotateIfData)
       rotateFile(false);
     else
       rotateFile(true);
