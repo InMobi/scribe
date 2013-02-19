@@ -178,6 +178,7 @@ class FileStoreBase : public Store {
   unsigned long eventsWritten; // This is how many events this process has
                                // written to the currently open file. It is NOT
                                // necessarily the number of lines in the file
+  unsigned long eventSize;     // size corresponding to eventsWritten
 
  private:
   // disallow copy, assignment, and empty construction
@@ -200,6 +201,7 @@ class FileStore : public FileStoreBase {
   bool handleMessages(boost::shared_ptr<logentry_vector_t> messages);
   bool isOpen();
   void configure(pStoreConf configuration, pStoreConf parent);
+  void closeWriteFile();
   void close();
   void flush();
 
