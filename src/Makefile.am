@@ -82,10 +82,12 @@ AM_LDFLAGS = $(BOOST_LDFLAGS) $(BOOST_SYSTEM_LIB) $(BOOST_FILESYSTEM_LIB)
 
 # Static -- multiple libraries can be defined
 if STATIC
-lib_LIBRARIES = libscribe.a libdynamicbucketupdater.a
+lib_LIBRARIES = libscribe.a libdynamicbucketupdater.a libaudit.a
 libscribe_a_SOURCES = gen-cpp/scribe.cpp gen-cpp/scribe_types.cpp gen-cpp/scribe_constants.cpp
-libdynamicbucketupdater_a_SOURCES = gen-cpp/BucketStoreMapping.cpp gen-cpp/bucketupdater_constants.cpp gen-cpp/bucketupdater_types.cpp 
-INTERNAL_LIBS = libscribe.a libdynamicbucketupdater.a
+libdynamicbucketupdater_a_SOURCES = gen-cpp/BucketStoreMapping.cpp gen-cpp/bucketupdater_constants.cpp gen-cpp/bucketupdater_types.cpp
+libaudit_a_SOURCES = gen-cpp/audit_types.cpp gen-cpp/audit_constants.cpp
+ 
+INTERNAL_LIBS = libscribe.a libdynamicbucketupdater.a libaudit.a
 endif
 
 # Shared -- multiple libraries can be defined
@@ -100,7 +102,7 @@ endif
 
 # Binaries -- multiple progs can be defined.
 bin_PROGRAMS = scribed
-scribed_SOURCES = modp_b64.c store.cpp store_queue.cpp conf.cpp file.cpp conn_pool.cpp scribe_server.cpp network_dynamic_config.cpp dynamic_bucket_updater.cpp $(FB_SOURCES) $(ENV_SOURCES)
+scribed_SOURCES = modp_b64.c store.cpp store_queue.cpp conf.cpp file.cpp conn_pool.cpp scribe_server.cpp network_dynamic_config.cpp dynamic_bucket_updater.cpp scribe_audit.cpp $(FB_SOURCES) $(ENV_SOURCES)
 if USE_SCRIBE_HDFS
   scribed_SOURCES += HdfsFile.cpp
 endif
@@ -116,6 +118,7 @@ endif
 
 $(eval $(call thrift_template,.,$(srcdir)/../if/scribe.thrift,$(THRIFT_OPTS)))
 $(eval $(call thrift_template,.,$(srcdir)/../if/bucketupdater.thrift,$(THRIFT_OPTS)))
+$(eval $(call thrift_template,.,$(srcdir)/../if/audit.thrift,$(THRIFT_OPTS)))
 
 if FACEBOOK
   $(eval $(call thrift_template,.,$(smc_home)/if/ServiceManager.thrift,--gen cpp))

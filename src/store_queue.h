@@ -1,5 +1,5 @@
 //  Copyright (c) 2007-2008 Facebook
-//
+
 //  Licensed under the Apache License, Version 2.0 (the "License");
 //  you may not use this file except in compliance with the License.
 //  You may obtain a copy of the License at
@@ -27,6 +27,7 @@
 #include "common.h"
 
 class Store;
+class AuditManager;
 
 /*
  * This class implements a queue and a thread for dispatching
@@ -60,6 +61,18 @@ class StoreQueue {
   inline unsigned long long getSize() {
     return msgQueueSize;
   }
+
+  // set the audit manager. This would be called only if audit topic is configured.
+  void setAuditManager(boost::shared_ptr<AuditManager> pAudit) { auditMgr = pAudit; }
+  // get the audit manager
+  boost::shared_ptr<AuditManager> getAuditManager() { return auditMgr; } 
+  // return whether this store queue manages audit topic
+  bool isAuditStore() { return isAudit; }
+  // set whether this store queue will manage audit topic
+  void setAuditStore(bool audit) { isAudit = audit; }
+  // return store config. This will be used by audit manager to fetch audit configs.
+  pStoreConf getStoreConfig() { return pConf; }
+
  private:
   void storeInitCommon();
   void configureInline(pStoreConf configuration);
@@ -116,6 +129,13 @@ class StoreQueue {
 
   // Store that will handle messages. This can contain other stores.
   boost::shared_ptr<Store> store;
+
+  // whether current store queue manages audit topic
+  bool isAudit;
+  // handle to audit manager, if audit topic is configured in scribe
+  boost::shared_ptr<AuditManager> auditMgr;
+  // store configuration
+  pStoreConf pConf;
 };
 
 #endif //!defined SCRIBE_STORE_QUEUE_H

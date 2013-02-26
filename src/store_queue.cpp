@@ -48,7 +48,8 @@ StoreQueue::StoreQueue(const string& type, const string& category,
     checkPeriod(check_period),
     targetWriteSize(DEFAULT_TARGET_WRITE_SIZE),
     maxWriteInterval(DEFAULT_MAX_WRITE_INTERVAL),
-    mustSucceed(true) {
+    mustSucceed(true),
+    isAudit(false) {
 
   store = Store::createStore(this, type, category,
                             false, multiCategory);
@@ -69,7 +70,8 @@ StoreQueue::StoreQueue(const boost::shared_ptr<StoreQueue> example,
     checkPeriod(example->checkPeriod),
     targetWriteSize(example->targetWriteSize),
     maxWriteInterval(example->maxWriteInterval),
-    mustSucceed(example->mustSucceed) {
+    mustSucceed(example->mustSucceed),
+    isAudit(false) {
 
   store = example->copyStore(category);
   if (!store) {
@@ -115,6 +117,7 @@ void StoreQueue::addMessage(boost::shared_ptr<LogEntry> entry) {
 }
 
 void StoreQueue::configureAndOpen(pStoreConf configuration) {
+  pConf = configuration;
   // model store has to handle this inline since it has no queue
   if (isModel) {
     configureInline(configuration);
@@ -248,6 +251,13 @@ void StoreQueue::threadMember() {
     if (!stop && ((this_loop - last_periodic_check) >= checkPeriod)) {
       if (open) store->periodicCheck();
       last_periodic_check = this_loop;
+    }
+
+    // perform audit specific task if it is an audit store
+    if (isAudit && auditMgr != NULL && auditMgr.get() != NULL && 
+       (stop || (this_loop - last_handle_messages >= maxWriteInterval) || 
+        msgQueueSize >= targetWriteSize)) {
+      auditMgr->performAuditTask();
     }
 
     pthread_mutex_lock(&msgMutex);

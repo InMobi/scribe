@@ -86,12 +86,22 @@ class Store {
   // don't need to override
   virtual const std::string& getType();
 
+  void setStorePrimary(bool primary) { isPrimary = primary; }
+  bool isStorePrimary() { return isPrimary; } 
+
  protected:
   virtual void setStatus(const std::string& new_status);
+  // this method audits the messages as sent through audit manager
+  void auditMessagesSent(boost::shared_ptr<logentry_vector_t>& messages,
+        unsigned long offset, unsigned long count, bool auditFileStore,
+        const std::string& filename);
   std::string status;
   std::string categoryHandled;
   bool multiCategory;             // Whether multiple categories are handled
   std::string storeType;
+  // Whether this is a primary store of its parent. This flag is used to decide 
+  // whether to audit the sent messages.
+  bool isPrimary;
 
   // Don't ever take this lock for multiple stores at the same time
   pthread_mutex_t statusMutex;
@@ -147,6 +157,9 @@ class FileStoreBase : public Store {
   int  getFileSuffix(const std::string& filename,
                      const std::string& base_filename);
   void setHostNameSubDir();
+
+  // audit the event that file is closed
+  void auditFileClosed();
 
   // Configuration
   std::string baseFilePath;
