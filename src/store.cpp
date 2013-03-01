@@ -2110,6 +2110,8 @@ NetworkStore::handleMessages(boost::shared_ptr<logentry_vector_t> messages) {
   // if write succeeded, audit these messages as sent
   if (status) {
     auditMessagesSent(messages, 0, messages->size(), false, "");
+    // increment the sent counters for this category
+    g_Handler->incCounter(categoryHandled, "sent", messages->size());
   }
 
   return status;

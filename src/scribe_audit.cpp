@@ -415,6 +415,9 @@ void AuditManager::performAuditTask() {
   // acquire write lock on auditRWMutex using RWGuard 
   RWGuard rwMonitor(*auditRWMutex, true);
 
+  // counter for number of audit messages generated
+  int auditMsgCount = 0;
+
   // Iterate through audit map; create a LogEntry instance from each audit message 
   // entry per topic and add it to message queue
   try {
@@ -434,6 +437,9 @@ void AuditManager::performAuditTask() {
 
       // add the LogEntry instance to store queue
       auditStore->addMessage(entry);
+
+      // increment the audit message generation count
+      ++auditMsgCount;
 
       // now clear the contents of received/sent maps within audit message instance
       audit_msg->received.clear();
@@ -473,6 +479,9 @@ void AuditManager::performAuditTask() {
 
           // add the LogEntry instance to store queue
           auditStore->addMessage(entry);
+
+          // increment the audit message generation count
+          ++auditMsgCount;
         }
         // delete the entry from file audit map
         fileAuditMap.erase(file_audit_iter++);
@@ -483,6 +492,9 @@ void AuditManager::performAuditTask() {
   } catch (...) {
     LOG_OPER("[Audit] Store thread failed to perform file audit task. Unexpected error");
   }
+
+  // increment the audit message generated counter
+  g_Handler->incCounter(auditTopic, "generated", auditMsgCount);
 }
 
 // This method serializes the audit message entry and sets it as the message payload
