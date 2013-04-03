@@ -1,3 +1,9 @@
+scribe-server-hdfs-orig (0.4.2) lucid; urgency=low
+
+  * Fix compilation issue due to CDH3u5 upgrade
+
+ -- Platform Engineering <platform-engg@inmobi.com>  Wed, 03 Apr 2013 17:01:00  +0530
+
 scribe-server-hdfs-orig (0.4.1) lucid; urgency=low
 
   * Increment audit messages generated counter; Increment sent counter per topic in Network Store

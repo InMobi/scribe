@@ -153,7 +153,7 @@ unsigned long HdfsFile::fileSize() {
 
 void HdfsFile::deleteFile() {
   if (fileSys) {
-    hdfsDelete(fileSys, filename.c_str());
+    hdfsDelete(fileSys, filename.c_str(), 0);
   }
   LOG_OPER("[hdfs] deleteFile %s", filename.c_str());
 }
