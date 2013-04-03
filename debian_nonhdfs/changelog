@@ -1,3 +1,21 @@
+scribe-server-orig (0.4.1) lucid; urgency=low
+
+  * Increment audit messages generated counter; Increment sent counter per topic in Network Store
+
+ -- Platform Engineering <platform-engg@inmobi.com>  Fri, 01 Mar 2013 17:32:19  +0530
+
+scribe-server-orig (0.4) lucid; urgency=low
+
+  * Add Audit Trail feature in scribe
+
+ -- Platform Engineering <platform-engg@inmobi.com>  Tue, 26 Feb 2013 06:24:35  +0530
+
+scribe-server-orig (0.3.1) lucid; urgency=low
+
+  * <fstype>_wrote_num_messages and received good mismatch
+
+ -- Platform Engineering <platform-engg@inmobi.com>  Tue, 19 Feb 2013 02:15:24  +0530
+
 scribe-server-orig (0.3) lucid; urgency=low
 
   * provide num_messages written and num_bytes written to a file store
