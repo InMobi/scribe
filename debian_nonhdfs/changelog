@@ -1,3 +1,27 @@
+scribe-server-orig (0.3) lucid; urgency=low
+
+  * provide num_messages written and num_bytes written to a file store
+
+ -- Platform Engineering <platform-engg@inmobi.com>  Mon, 29 Oct 2012 12:10:45  +0530
+
+scribe-server-orig (0.2.8-1) lucid; urgency=low
+
+  * write queue size to scribe log when a request in throttled.
+
+ -- Platform Engineering <platform-engg@inmobi.com>  Fri, 12 Oct 2012 11:37:00  +0530
+
+scribe-server-orig (0.2.5-1) lucid; urgency=low
+
+  * write stats to scribe server log
+
+ -- Platform Engineering <platform-engg@inmobi.com>  Wed, 25 Jul 2012 17:57:45 +0530
+
+scribe-server-orig (0.2.4-1) lucid; urgency=low
+
+  * Don't Write Scribe_stats file even when the setting contains to write it
+
+ -- Platform Engineering <platform-engg@inmobi.com>  Wed, 25 Jul 2012 17:57:45 +0530
+
 scribe-server-orig (0.2.2-1) lucid; urgency=low
 
   * added metrics to capture per category timesouts and eofs for the network store
