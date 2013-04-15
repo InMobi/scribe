@@ -133,8 +133,8 @@ class FileStoreBase : public Store {
  protected:
   // We need to pass arguments to open when called internally.
   // The external open function just calls this with default args.
-  virtual bool openInternal(bool incrementFilename, struct tm* current_time) = 0;
-  virtual void rotateFile(time_t currentTime = 0);
+  virtual bool openInternal(bool openNewFile, bool incrementFilename, struct tm* current_time) = 0;
+  virtual void rotateFile(bool openNewFile, time_t currentTime = 0);
 
 
   // appends information about the current file to a log file in the same
@@ -181,6 +181,7 @@ class FileStoreBase : public Store {
   bool createSymlink;
   bool writeStats;
   bool rotateOnReopen;
+  bool rotateIfNoData;
 
   // State
   unsigned long currentSize;
@@ -230,7 +231,7 @@ class FileStore : public FileStoreBase {
 
  protected:
   // Implement FileStoreBase virtual function
-  bool openInternal(bool incrementFilename, struct tm* current_time);
+  bool openInternal(bool openNewFile, bool incrementFilename, struct tm* current_time);
   bool writeMessages(boost::shared_ptr<logentry_vector_t> messages,
                      boost::shared_ptr<FileInterface> write_file =
                      boost::shared_ptr<FileInterface>());
@@ -270,7 +271,7 @@ class ThriftFileStore : public FileStoreBase {
 
  protected:
   // Implement FileStoreBase virtual function
-  bool openInternal(bool incrementFilename, struct tm* current_time);
+  bool openInternal(bool openNewFile, bool incrementFilename, struct tm* current_time);
 
   boost::shared_ptr<apache::thrift::transport::TTransport> thriftFileTransport;
 

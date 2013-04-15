@@ -222,6 +222,7 @@ FileStoreBase::FileStoreBase(StoreQueue* storeq,
     createSymlink(true),
     writeStats(false),
     rotateOnReopen(false),
+    rotateIfNoData(true),
     currentSize(0),
     eventSize(0),
     lastRollTime(0),
@@ -354,6 +355,12 @@ void FileStoreBase::configure(pStoreConf configuration, pStoreConf parent) {
       rotateOnReopen = false;
     }
   }
+
+  if (configuration->getString("rotate_if_no_data", tmp)) {
+    if (0 == tmp.compare("no")) {
+      rotateIfNoData = false;
+    }
+  }
 }
 
 void FileStoreBase::copyCommon(const FileStoreBase *base) {
@@ -373,6 +380,7 @@ void FileStoreBase::copyCommon(const FileStoreBase *base) {
   baseSymlinkName = base->baseSymlinkName;
   writeStats = base->writeStats;
   rotateOnReopen = base->rotateOnReopen;
+  rotateIfNoData = base->rotateIfNoData;
 
   /*
    * append the category name to the base file path and change the
@@ -389,7 +397,8 @@ void FileStoreBase::copyCommon(const FileStoreBase *base) {
 }
 
 bool FileStoreBase::open() {
-  return openInternal(rotateOnReopen, NULL);
+  if (rotateIfNoData)
+    return openInternal(true, rotateOnReopen, NULL);
 }
 
 // Decides whether conditions are sufficient for us to roll files
@@ -421,11 +430,16 @@ void FileStoreBase::periodicCheck() {
   }
 
   if (rotate) {
-    rotateFile(rawtime);
+    if(!rotateIfNoData){
+      rotateFile(false, rawtime);
+    }
+    else{
+      rotateFile(true, rawtime);
+    }
   }
 }
 
-void FileStoreBase::rotateFile(time_t currentTime) {
+void FileStoreBase::rotateFile(bool openNewFile, time_t currentTime) {
   struct tm timeinfo;
 
   currentTime = currentTime > 0 ? currentTime : time(NULL);
@@ -437,7 +451,7 @@ void FileStoreBase::rotateFile(time_t currentTime) {
            maxSize == ULONG_MAX ? 0 : maxSize);
 
   printStats();
-  openInternal(true, &timeinfo);
+  openInternal(openNewFile, true, &timeinfo);
 }
 
 string FileStoreBase::makeFullFilename(int suffix, struct tm* creation_time,
@@ -679,7 +693,7 @@ void FileStore::configure(pStoreConf configuration, pStoreConf parent) {
   encodeBase64Flag = inttemp ? true : false;
 }
 
-bool FileStore::openInternal(bool incrementFilename, struct tm* current_time) {
+bool FileStore::openInternal(bool openNewFile, bool incrementFilename, struct tm* current_time) {
   bool success = false;
   struct tm timeinfo;
 
@@ -724,6 +738,7 @@ bool FileStore::openInternal(bool incrementFilename, struct tm* current_time) {
       closeWriteFile();
     }
 
+    if(openNewFile){
     writeFile = FileInterface::createFileInterface(fsType, file, isBufferFile);
     if (!writeFile) {
       LOG_OPER("[%s] Failed to create file <%s> of type <%s> for writing",
@@ -774,7 +789,7 @@ bool FileStore::openInternal(bool incrementFilename, struct tm* current_time) {
       currentFilename = file;
       setStatus("");
     }
-
+    }
   } catch(const std::exception& e) {
     LOG_OPER("[%s] Failed to create/open file of type <%s> for writing",
              categoryHandled.c_str(), fsType.c_str());
@@ -850,7 +865,8 @@ shared_ptr<Store> FileStore::copy(const std::string &category) {
 bool FileStore::handleMessages(boost::shared_ptr<logentry_vector_t> messages) {
 
   if (!isOpen()) {
-    if (!open()) {
+      
+    if (!openInternal(true, rotateOnReopen, NULL)) {
       LOG_OPER("[%s] File failed to open FileStore::handleMessages()",
                categoryHandled.c_str());
       return false;
@@ -873,6 +889,7 @@ bool FileStore::writeMessages(boost::shared_ptr<logentry_vector_t> messages,
   unsigned long current_size_buffered = 0; // size of data in write_buffer
   unsigned long num_buffered = 0;
   unsigned long num_written = 0;
+  unsigned long num_messages = messages->size();
   boost::shared_ptr<FileInterface> write_file;
   unsigned long max_write_size = min(maxSize, maxWriteSize);
 
@@ -970,8 +987,8 @@ bool FileStore::writeMessages(boost::shared_ptr<logentry_vector_t> messages,
       }
 
       // rotate file if large enough and not writing to a separate file
-      if ((currentSize > maxSize && maxSize != 0 )&& !file) {
-        rotateFile();
+      if ((currentSize > maxSize && maxSize != 0 )&& !file && num_written < num_messages) {
+        rotateFile(true);
         write_file = writeFile;
       }
     }
@@ -1198,14 +1215,17 @@ bool ThriftFileStore::handleMessages(boost::shared_ptr<logentry_vector_t> messag
   // We can't wait until periodicCheck because we could be getting
   // a lot of data all at once in a failover situation
   if (currentSize > maxSize && maxSize != 0) {
-    rotateFile();
+    if (!rotateIfNoData)
+      rotateFile(false);
+    else
+      rotateFile(true);
   }
 
   return true;
 }
 
 bool ThriftFileStore::open() {
-  return openInternal(true, NULL);
+  return openInternal(true, true, NULL);
 }
 
 bool ThriftFileStore::isOpen() {
@@ -1232,7 +1252,7 @@ void ThriftFileStore::flush() {
   return;
 }
 
-bool ThriftFileStore::openInternal(bool incrementFilename, struct tm* current_time) {
+bool ThriftFileStore::openInternal(bool openNewFile, bool incrementFilename, struct tm* current_time) {
   struct tm timeinfo;
 
   if (!current_time) {
