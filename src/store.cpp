@@ -222,7 +222,7 @@ FileStoreBase::FileStoreBase(StoreQueue* storeq,
     createSymlink(true),
     writeStats(false),
     rotateOnReopen(false),
-    rotateIfData(false),
+    rotateIfNoData(true),
     currentSize(0),
     eventSize(0),
     lastRollTime(0),
@@ -356,9 +356,9 @@ void FileStoreBase::configure(pStoreConf configuration, pStoreConf parent) {
     }
   }
 
-  if (configuration->getString("rotate_if_data", tmp)) {
-    if (0 == tmp.compare("yes")) {
-      rotateIfData = true;
+  if (configuration->getString("rotate_if_no_data", tmp)) {
+    if (0 == tmp.compare("no")) {
+      rotateIfNoData = false;
     }
   }
 }
@@ -380,7 +380,7 @@ void FileStoreBase::copyCommon(const FileStoreBase *base) {
   baseSymlinkName = base->baseSymlinkName;
   writeStats = base->writeStats;
   rotateOnReopen = base->rotateOnReopen;
-  rotateIfData = base->rotateIfData;
+  rotateIfNoData = base->rotateIfNoData;
 
   /*
    * append the category name to the base file path and change the
@@ -397,7 +397,7 @@ void FileStoreBase::copyCommon(const FileStoreBase *base) {
 }
 
 bool FileStoreBase::open() {
-  if (!rotateIfData)
+  if (rotateIfNoData)
     return openInternal(true, rotateOnReopen, NULL);
 }
 
@@ -430,7 +430,7 @@ void FileStoreBase::periodicCheck() {
   }
 
   if (rotate) {
-    if(rotateIfData){
+    if(!rotateIfNoData){
       rotateFile(false, rawtime);
     }
     else{
@@ -889,6 +889,7 @@ bool FileStore::writeMessages(boost::shared_ptr<logentry_vector_t> messages,
   unsigned long current_size_buffered = 0; // size of data in write_buffer
   unsigned long num_buffered = 0;
   unsigned long num_written = 0;
+  unsigned long num_messages = messages->size();
   boost::shared_ptr<FileInterface> write_file;
   unsigned long max_write_size = min(maxSize, maxWriteSize);
 
@@ -986,11 +987,8 @@ bool FileStore::writeMessages(boost::shared_ptr<logentry_vector_t> messages,
       }
 
       // rotate file if large enough and not writing to a separate file
-      if ((currentSize > maxSize && maxSize != 0 )&& !file) {
-        if(rotateIfData)
-          rotateFile(false);
-        else
-          rotateFile(true);
+      if ((currentSize > maxSize && maxSize != 0 )&& !file && num_written < num_messages) {
+        rotateFile(true);
         write_file = writeFile;
       }
     }
@@ -1217,7 +1215,7 @@ bool ThriftFileStore::handleMessages(boost::shared_ptr<logentry_vector_t> messag
   // We can't wait until periodicCheck because we could be getting
   // a lot of data all at once in a failover situation
   if (currentSize > maxSize && maxSize != 0) {
-    if (rotateIfData)
+    if (!rotateIfNoData)
       rotateFile(false);
     else
       rotateFile(true);
