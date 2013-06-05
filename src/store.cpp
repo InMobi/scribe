@@ -1702,12 +1702,10 @@ void BufferStore::periodicCheck() {
 
                 // Put back un-handled messages
                 if (!secondaryStore->replaceOldest(messages, &nowinfo)) {
-                  // Nothing we can do but try to remove oldest messages and
-                  // report a loss
-                  LOG_OPER("[%s] buffer store secondary store lost %lu messages",
-                      categoryHandled.c_str(), messages->size());
-                  g_Handler->incCounter(categoryHandled, "lost", messages->size());
-                  secondaryStore->deleteOldest(&nowinfo);
+                  // Not deleting the oldest file and this could result in data 
+                  // duplication
+                  LOG_OPER("[%s] buffer store secondary store can replay %lu messages",
+                      categoryHandled.c_str(), size - messages->size());
                 }
               }
               changeState(DISCONNECTED);
