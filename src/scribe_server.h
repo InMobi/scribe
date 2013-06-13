@@ -76,6 +76,11 @@ class scribeHandler : virtual public scribe::thrift::scribeIf,
   unsigned long getMaxConn() {
     return maxConn;
   }
+
+  // this needs to be public for the scribe signal handler thread handler to invoke it,
+  // but no one else should ever call it.
+  void performShutdown();
+
  private:
   boost::shared_ptr<apache::thrift::server::TNonblockingServer> server;
 
