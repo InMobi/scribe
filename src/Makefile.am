@@ -112,6 +112,8 @@ if SHARED
 scribed_DEPENDENCIES = libscribe.so
 endif
 
+dist_bin_SCRIPTS = scribe_ctrl.py
+
 # Section 4 ##############################################################################
 # Set up Thrift specific activity here.
 # We assume that a <name>+types.cpp will always be built from <name>.thrift.
