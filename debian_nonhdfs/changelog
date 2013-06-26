@@ -1,3 +1,11 @@
+scribe-server-orig (0.4.2) lucid; urgency=low
+
+  * Implement signal handling in scribe based on sigaction
+  * Package scribe_ctrl.py script
+  * Not deleting the file on failing to replace the oldest messages in secondary file store
+
+ -- Platform Engineering <platform-engg@inmobi.com>  Tue, 25 Jun 2013 12:14:00  +0530
+
 scribe-server-orig (0.4.1) lucid; urgency=low
 
   * Increment audit messages generated counter; Increment sent counter per topic in Network Store
