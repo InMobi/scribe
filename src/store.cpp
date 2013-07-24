@@ -556,6 +556,17 @@ void FileStoreBase::printStats() {
 
   boost::shared_ptr<FileInterface> stats_file =
       FileInterface::createFileInterface(fsType, filename);
+
+  // Optimize to open/close stats_file only once. In CDH3 when a file is
+  // opened in append mode, it throws an ipc.remoteException if broken 
+  // append is not enabled at NN. That leads to remoteException instances
+  // thrown per minute per stream. The libhdfs in CDH3 has some issues due
+  // to which these exceptions don't get cleared and hence get accumulated, 
+  // leading to rapid memory leak at scribe collector end.
+  if (stats_file && stats_file->exists()) {
+    return;
+  }
+
   if (!stats_file ||
       !stats_file->createDirectory(filePath) ||
       !stats_file->openWrite()) {

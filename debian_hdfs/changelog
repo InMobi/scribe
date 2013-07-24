@@ -1,3 +1,9 @@
+scribe-server-hdfs-orig (0.4.4) lucid; urgency=low
+
+  * Fix memory leak in scribe due to remoteException while opening scribe_stats in append mode
+
+ -- Platform Engineering <platform-engg@inmobi.com>  Fri, 19 Jul 2013 11:48:00  +0530
+
 scribe-server-hdfs-orig (0.4.3) lucid; urgency=low
  
   * Implement signal handling in scribe based on sigaction

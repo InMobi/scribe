@@ -100,6 +100,11 @@ bool StdFile::isOpen() {
   return file.is_open();
 }
 
+bool StdFile::exists() {
+  struct stat buf;
+  return (stat(filename.c_str(), &buf) == 0);
+}
+
 void StdFile::close() {
   if (file.is_open()) {
     file.close();

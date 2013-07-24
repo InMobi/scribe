@@ -93,6 +93,14 @@ bool HdfsFile::isOpen() {
    return retVal;
 }
 
+bool HdfsFile::exists() {
+  if (fileSys) {
+    if (hdfsExists(fileSys, filename.c_str()) == 0)
+      return true;
+  }
+  return false;
+}
+
 void HdfsFile::close() {
   if (fileSys) {
     if (hfile) {

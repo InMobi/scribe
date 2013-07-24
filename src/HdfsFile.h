@@ -30,6 +30,7 @@ class HdfsFile : public FileInterface {
   std::string getFrame(unsigned data_size);
   bool createDirectory(std::string path);
   bool createSymlink(std::string newpath, std::string oldpath);
+  bool exists();
 
  private:
   char* inputBuffer_;

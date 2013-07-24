@@ -48,6 +48,7 @@ class FileInterface {
   virtual std::string getFrame(unsigned data_size) {return std::string();};
   virtual bool createDirectory(std::string path) = 0;
   virtual bool createSymlink(std::string oldpath, std::string newpath) = 0;
+  virtual bool exists() = 0;
 
  protected:
   bool framed;
@@ -76,6 +77,7 @@ class StdFile : public FileInterface {
   std::string getFrame(unsigned data_size);
   bool createDirectory(std::string path);
   bool createSymlink(std::string newpath, std::string oldpath);
+  bool exists();
 
  private:
   bool open(std::ios_base::openmode mode);
