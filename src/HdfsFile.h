@@ -84,6 +84,7 @@ class HdfsFile : public FileInterface {
   std::string getFrame(unsigned data_size) { return 0; };
   bool createDirectory(std::string path) { return false; };
   bool createSymlink(std::string newpath, std::string oldpath) { return false; };
+  bool exists() { return false; };
 };
 #endif // USE_SCRIBE_HDFS
 
