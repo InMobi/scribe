@@ -248,9 +248,9 @@ void StdFile::listImpl(const std::string& path, std::vector<std::string>& _retur
   try {
     if (boost::filesystem::exists(path)) {
       boost::filesystem::directory_iterator dir_iter(path), end_iter;
-
+      // boost library (>=1.46) uses filesystem v3 by default. FileSystem version-2 and version-3 are not fully compatible.
       for ( ; dir_iter != end_iter; ++dir_iter) {
-        _return.push_back(dir_iter->filename());
+        _return.push_back(dir_iter->path().filename().string());
       }
     }
   } catch (const std::exception& e) {
