@@ -11,7 +11,7 @@
 
 override_dh_auto_configure:
 	[ -f configure ] || ./bootstrap.sh
-	dh_auto_configure -- LIBS="-lboost_thread-mt" --with-thriftpath=/usr --with-fb303path=/usr
+	dh_auto_configure -- CPPFLAGS="-DHAVE_INTTYPES_H -DHAVE_NETINET_IN_H" LIBS="-lboost_system-mt -lboost_filesystem-mt -lboost_thread-mt" --with-thriftpath=/usr --with-fb303path=/usr
 
 %:
 	dh  $@
