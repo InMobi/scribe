@@ -1,3 +1,9 @@
+scribe-server-hdfs-orig (0.5) precise; urgency=low
+
+  * Make changes in scribe to build on ubuntu12.04 (precise)
+
+ -- Platform Engineering <platform-engg@inmobi.com>  Mon, 23 Sep 2013 17:03:00  +0530
+
 scribe-server-hdfs-orig (0.4.4) lucid; urgency=low
 
   * Fix memory leak in scribe due to remoteException while opening scribe_stats in append mode
