@@ -1864,7 +1864,11 @@ NetworkStore::NetworkStore(StoreQueue* storeq,
     ignoreNetworkError(false),
     configmod(NULL),
     opened(false),
-    lastServiceCheck(0) {
+    lastServiceCheck(0),
+    baseResetInterval(0),
+    resetIntervalRange(0),
+    resetInterval(0),
+    lastResetTime(0) {
   // we can't open the connection until we get configured
 
   // the bool for opened ensures that we don't make duplicate
@@ -1935,6 +1939,60 @@ void NetworkStore::configure(pStoreConf configuration, pStoreConf parent) {
                 categoryHandled.c_str(), dynamicType.c_str());
     }
   }
+
+  if (configuration->getString("reset_interval", temp)) {
+    baseResetInterval = getTimeInSeconds(temp);
+  }
+  if (configuration->getString("reset_interval_range", temp)) {
+    resetIntervalRange = getTimeInSeconds(temp);
+  }
+  // if connection reset is enabled, initialize reset settings 
+  if (baseResetInterval > 0) {
+    LOG_OPER("[%s] Base connection reset interval: [%d] seconds, reset interval range: [%d] seconds",
+      categoryHandled.c_str(), (int) baseResetInterval, (int) resetIntervalRange);
+    lastResetTime = time(NULL);
+    resetInterval = baseResetInterval + rand() % resetIntervalRange;
+    LOG_OPER("[%s] Next connection reset interval is set to: [%d] seconds", 
+      categoryHandled.c_str(), (int) resetInterval);
+  }
+}
+
+// assuming timeStr is a numeric string that ends with 0 or 1 character
+// out of (w/d/h/m/s), calculate time in seconds
+time_t NetworkStore::getTimeInSeconds(std::string& timeStr) {
+  char* endptr;
+  time_t timePeriod = strtol(timeStr.c_str(), &endptr, 10);
+
+  // the string must be numeric and ending with 0 or 1 character of (w/d/h/m/s) 
+  bool ok = endptr != timeStr.c_str() && (*endptr == '\0' || endptr[1] == '\0');
+  switch (*endptr) {
+    case 'w':
+      timePeriod *= 60 * 60 * 24 * 7;
+      break;
+    case 'd':
+      timePeriod *= 60 * 60 * 24;
+      break;
+    case 'h':
+      timePeriod *= 60 * 60;
+      break;
+    case 'm':
+      timePeriod *= 60;
+      break;
+    case 's':
+    case '\0':
+      break;
+    default:
+      ok = false;
+      break;
+  }
+
+  if (!ok) {
+    LOG_OPER("[%s] WARNING: Bad config - invalid format of time string",
+            categoryHandled.c_str());
+    return 0;
+  }
+
+  return timePeriod;
 }
 
 void NetworkStore::periodicCheck() {
@@ -1952,6 +2010,31 @@ void NetworkStore::periodicCheck() {
       remoteHost = host;
       remotePort = port;
       close();
+    }
+  }
+
+  // if reset interval is configured, check if connection needs to be reset now
+  if (resetInterval > 0) {
+    time_t now = time(NULL);
+    if (now - lastResetTime >= resetInterval) {
+      LOG_OPER("[%s] Connection reset: closing old connection", categoryHandled.c_str());
+      // close the existing connection
+      close();
+
+      // open a new connection
+      if (open()) {
+        // successfully opened
+        LOG_OPER("[%s] Connection reset: opened new connection", categoryHandled.c_str());
+        
+        // update lastResetTime and resetInterval
+        lastResetTime = now;
+        resetInterval = baseResetInterval + rand() % resetIntervalRange;
+        LOG_OPER("[%s] Next connection reset interval is set to: [%d] seconds", 
+          categoryHandled.c_str(), (int) resetInterval);
+        
+        //increment counter for number of reset connections
+        g_Handler->incCounter(categoryHandled, "connection_resets");
+      }
     }
   }
 }
@@ -2063,6 +2146,18 @@ shared_ptr<Store> NetworkStore::copy(const std::string &category) {
   store->remoteHost = remoteHost;
   store->remotePort = remotePort;
   store->serviceName = serviceName;
+
+  store->baseResetInterval = baseResetInterval;
+  store->resetIntervalRange = resetIntervalRange;
+
+  if (baseResetInterval > 0) {
+    LOG_OPER("[%s] Base connection reset interval: [%d] seconds, reset interval range: [%d] seconds",
+      category.c_str(), (int) baseResetInterval, (int) resetIntervalRange);
+    store->resetInterval = baseResetInterval + rand() % resetIntervalRange;
+    store->lastResetTime = time(NULL);
+    LOG_OPER("[%s] Next connection reset interval is set to: [%d] seconds",
+      category.c_str(), (int) store->resetInterval); 
+  }
 
   return copied;
 }

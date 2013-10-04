@@ -425,11 +425,20 @@ class NetworkStore : public Store {
   bool opened;
   boost::shared_ptr<scribeConn> unpooledConn; // null if useConnPool
 
+  // connection reset settings
+  time_t baseResetInterval;  // base connection reset time in seconds
+  time_t resetIntervalRange;  // random backoff interval in seconds
+  time_t resetInterval;  // current reset interval calcuated in seconds
+  time_t lastResetTime;  // time when the connection was last reset 
+
  private:
   // disallow copy, assignment, and empty construction
   NetworkStore();
   NetworkStore(NetworkStore& rhs);
   NetworkStore& operator=(NetworkStore& rhs);
+  // assuming timeStr is a numeric string that ends with 0 or 1 character
+  // out of (w/d/h/m/s), calculate time in seconds
+  time_t getTimeInSeconds(std::string& timeStr);
 };
 
 /*
