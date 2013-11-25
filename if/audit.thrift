@@ -19,6 +19,6 @@ struct AuditMessage
   7: map<i64,i64> sent,
   8: list<string> filenames,
   9: map<string, string> tags,
-  10: optional map<i64, AuditMetrics> receivedMetrics,
-  11: optional map<i64, AuditMetrics> sentMetrics
+  10: map<i64, AuditMetrics> receivedMetrics,
+  11: map<i64, AuditMetrics> sentMetrics
 }
