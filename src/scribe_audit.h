@@ -17,7 +17,7 @@
 //
 // @author Satish Mittal
 
-//#ifndef SCRIBE_AUDIT_H
+#ifndef SCRIBE_AUDIT_H
 #define SCRIBE_AUDIT_H
 
 #include "common.h"
@@ -163,4 +163,4 @@ class AuditManager  {
   boost::shared_ptr<apache::thrift::concurrency::ReadWriteMutex> auditRWMutex;
 };
 
-//#endif //!defined SCRIBE_AUDIT_H
+#endif //!defined SCRIBE_AUDIT_H
