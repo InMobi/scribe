@@ -120,7 +120,7 @@ void AuditManager::auditMessage(const LogEntry& entry, bool received) {
     if (validateMessage(entry)) {
       tsKey = getTimestamp(entry);
       msgSize = getMsgSize(entry);
-    LOG_OPER("[_audit] validate audit message, tsKey [%llu] and msgSize [%d]", tsKey, msgSize);
+      LOG_OPER("[_audit] validate audit message, tsKey [%llu] and msgSize [%d]", tsKey, msgSize);
     } else {
       LOG_OPER("[Audit] msg not valid");
     }
@@ -174,7 +174,6 @@ void AuditManager::auditMessages(shared_ptr<logentry_vector_t>& messages,
   if (!auditStore->isAuditStore()) {
     return;
   }
-  LOG_OPER("[Audit] audit arry of messages");
   // acquire read lock on auditRWMutex. This allows multiple threads to audit their
   // messages concurrently when audit store queue thread is not performing periodic
   // task to generate audit messages from maps.
@@ -313,8 +312,6 @@ void AuditManager::updateAuditMessageCounter(shared_ptr<audit_msg_t>& audit_msg,
     audit_msg->receivedMetrics[timestampKey].count = ++prevCount;
     unsigned long long prevSize = audit_msg->receivedMetrics[timestampKey].size;
     audit_msg->receivedMetrics[timestampKey].size = prevSize + msgSize;
-    LOG_OPER("[audit] XXXX topic: [%s] prevCount: [%llu], prevsize: [%llu]", audit_msg->topic.c_str(), prevCount, prevSize);
-    LOG_OPER("[audit] XXXX topic: [%s] currCount: [%lu], currsize: [%lu]", audit_msg->topic.c_str(), audit_msg->receivedMetrics[timestampKey].count, audit_msg->receivedMetrics[timestampKey].size);
   } else {
     unsigned long long counter = audit_msg->sent[timestampKey];
     audit_msg->sent[timestampKey] = ++counter;
@@ -324,8 +321,6 @@ void AuditManager::updateAuditMessageCounter(shared_ptr<audit_msg_t>& audit_msg,
     audit_msg->sentMetrics[timestampKey].count = ++prevCount;
     unsigned long long prevSize = audit_msg->sentMetrics[timestampKey].size;
     audit_msg->sentMetrics[timestampKey].size = prevSize + msgSize;
-    LOG_OPER("[audit] XXXX topic: [%s] prevCount: [%llu], prevsize: [%llu]", audit_msg->topic.c_str(), prevCount, prevSize);
-    LOG_OPER("[audit] XXXX topic: [%s] currCount: [%lu], currsize: [%lu]", audit_msg->topic.c_str(), audit_msg->sentMetrics[timestampKey].count, audit_msg->sentMetrics[timestampKey].size);
   }
   pthread_mutex_unlock(&(audit_msg->mutex));
 }
@@ -431,12 +426,10 @@ bool AuditManager::validateMessage(const LogEntry& entry) {
     return false;
   }
 
-  LOG_OPER("[_audit] valid message ");
   return true;
 }
 
-// This method checks whether the given message has a valid header. If a valid header is
-// found, this method returns message size else returns 0.
+// This method returns message size
 int AuditManager::getMsgSize(const LogEntry& entry) {
     const char* data = entry.message.data();
 
@@ -449,8 +442,7 @@ int AuditManager::getMsgSize(const LogEntry& entry) {
     return size;
 }
 
-// This method checks whether the given message has a valid header. If a valid header is
-// found, this method returns timestamp key else returns 0.
+// This method returns timestamp key
 unsigned long long AuditManager::getTimestamp(const LogEntry& entry) {
     const char* data = entry.message.data();
 
@@ -465,7 +457,7 @@ unsigned long long AuditManager::getTimestamp(const LogEntry& entry) {
     ((long)(data[11] & 0xff));
 
     LOG_OPER("[_audit] returning timestamp [%llu]", timestamp);
-    // If a valid header is found, convert the timestamp to a key that can be used 
+    // Cconvert the timestamp to a key that can be used 
     // to update the counter in received/sent map. The key is calculated based on 
     // window size audit config. E.g. if window size is 60 seconds, then all messages 
     // whose generation timestamp lie within 12:00 and 12:59 would be counted in the
@@ -493,20 +485,15 @@ void AuditManager::performAuditTask() {
   try {
     shared_ptr<audit_msg_t> audit_msg;
     audit_map_t::iterator audit_iter;
-    LOG_OPER("[audit] XXXX Performing audit task, auditMap size [%d]", auditMap.size());
     for (audit_iter = auditMap.begin(); audit_iter != auditMap.end(); audit_iter++) {
       audit_msg = audit_iter->second;
-        if (audit_msg->receivedMetrics.size() == 0 && audit_msg->sentMetrics.size() == 0)
-        {
-          LOG_OPER("XXXX metrics maps are empty");
-        }
       // skip auditing if received & sent maps are both empty
       if (audit_msg->received.size() == 0 && audit_msg->sent.size() == 0) {
-        LOG_OPER("XXXX Empty maps in audit_msg, continuing");
+        LOG_OPER("[Audit] Empty maps in audit_msg, continuing");
         continue;
       }
 
-      LOG_OPER("[Audit] XXXX category [%s], messages received [%llu], messages sent [%llu]",
+      LOG_OPER("[Audit] Category [%s], messages received [%llu], messages sent [%llu]",
         audit_msg->topic.c_str(), audit_msg->receivedCount, audit_msg->sentCount);
 
       // create a LogEntry instance from audit msg
@@ -580,7 +567,6 @@ void AuditManager::performAuditTask() {
 // of a logEntry instance. This instance will be later added in the audit thread queue.
 shared_ptr<LogEntry> AuditManager::serializeAuditMsg(shared_ptr<audit_msg_t>& audit_msg, 
     long timeInMillis) {
-  LOG_OPER("XXXX serialize audit_msg");
   // create an instance of Thrift AuditMessage from the given audit_msg
   boost::shared_ptr<AuditMessage> Audit = boost::shared_ptr<AuditMessage>(new AuditMessage);
   
@@ -604,9 +590,6 @@ shared_ptr<LogEntry> AuditManager::serializeAuditMsg(shared_ptr<audit_msg_t>& au
   shared_ptr<LogEntry> entry(new LogEntry);
   entry->category = auditTopic;
   entry->message = tmembuf->getBufferAsString();
-  LOG_OPER("XXXX size of treceived metrics map of serialized audit obj:[%d] and sent metrics:[%d]", Audit->receivedMetrics.size(), Audit->sentMetrics.size());
-  LOG_OPER("XXXX entry message: %s", entry->message.c_str());
-  LOG_OPER("XXXX serialized audit_msg, returning");
   return entry; 
 }
 
