@@ -47,6 +47,8 @@ bool HdfsFile::openRead() {
   if (hfile) {
     LOG_OPER("[hdfs] opened for read %s", filename.c_str());
     return true;
+  } else {
+    close();
   }
   return false;
 }
@@ -78,7 +80,11 @@ bool HdfsFile::openWrite() {
       LOG_OPER("[hdfs] opened for write %s", filename.c_str());
     }
     return true;
+  } else {
+    LOG_OPER("[hdfs] Failed to openWrite() hdfs file [%s]", filename.c_str());
+    close();
   }
+
   return false;
 }
 
@@ -113,7 +119,10 @@ void HdfsFile::close() {
 
     // Close the file system
     LOG_OPER("[hdfs] disconnecting fileSys for %s", filename.c_str());
-    hdfsDisconnect(fileSys);
+    int retval = hdfsDisconnect(fileSys);
+    if(retval != 0) {
+      LOG_OPER("[hdfs] Failed to disconnect filesystem for [%s]", filename.c_str());
+    }
     LOG_OPER("[hdfs] disconnected fileSys for %s", filename.c_str());
     fileSys = 0;
   }
@@ -133,7 +142,8 @@ bool HdfsFile::write(const std::string& data) {
   if (retVal) {
     int val = hdfsHFlush(fileSys, hfile);
     if (val == -1) {
-       LOG_OPER("[hdfs] flush failed"); 
+       LOG_OPER("[hdfs] flush failed, closing file [%s]", filename.c_str());
+       close();
        retVal = false;
     }
   }
@@ -142,7 +152,11 @@ bool HdfsFile::write(const std::string& data) {
 
 void HdfsFile::flush() {
   if (hfile) {
-    hdfsHFlush(fileSys, hfile);
+    int val = hdfsHFlush(fileSys, hfile);
+    if (val == -1) {
+       LOG_OPER("[hdfs] flush failed, closing file %s", filename.c_str());
+       close();
+    }
   }
 }
 
