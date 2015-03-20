@@ -1,0 +1,14 @@
+Setup steps - non hdfs
+1)cd scribe; rm -f debian; ln -sf debian_nonhdfs debian
+2)sudo vi /etc/apt/sources.list.d/inmobi.list
+add the entry deb http://repo.corp.inmobi.com:9999/precise ./
+3)sudo apt-get update
+4)sudo apt-get install debhelper autotools-dev inmobi-techplatform-libthrift-dev inmobi-techplatform-libfb303 libboost-thread-dev  libstdc++6-4.4-dev libevent-dev inmobi-techplatform-thrift-compiler libboost-dev libboost-test-dev libboost-program-options-dev libboost-system-dev libboost-filesystem-dev libevent-dev automake libtool flex bison pkg-config g++ libssl-dev
+5) creating sym links for pointing the multi threaded libboost to single threaded libboost
+sudo ln -s /usr/lib/x86_64-linux-gnu/libboost_thread.a /usr/lib/x86_64-linux-gnu/libboost_thread-mt.a
+sudo ln -s /usr/lib/x86_64-linux-gnu/libboost_system.a /usr/lib/x86_64-linux-gnu/libboost_system-mt.a
+sudo ln -s /usr/lib/x86_64-linux-gnu/libboost_filesystem.a /usr/lib/x86_64-linux-gnu/libboost_filesystem-mt.a
+6) Creating sym links for the changed directory structure of /usr/lib in ubuntu 14.04
+sudo ln -s /usr/lib/x86_64-linux-gnu/libboost_filesystem.a  /usr/lib/libboost_filesystem.a 
+sudo ln -s /usr/lib/x86_64-linux-gnu/libboost_system.a  /usr/lib/libboost_system.a 
+sudo ln -s /usr/lib/x86_64-linux-gnu/libboost_thread.a  /usr/lib/libboost_thread.a

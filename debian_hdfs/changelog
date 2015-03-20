@@ -1,10 +1,16 @@
-scribe-server-hdfs-orig (0.5.1) lucid; urgency=low
+scribe-server-hdfs-orig (0.5.1-precise) precise; urgency=low
 
   * Implement multithread feature to improve scribe thorughput per stream
   * Add counters for received bytes
   * Improve scribe throttling logic to only check queue size of the stream involved
 
- -- Platform Engineering <platform-engg@inmobi.com>  Thu, 14 Aug 2014 10:20:00  +0530
+ -- Platform Engineering <platform-engg@inmobi.com>  Mon, 20 Oct 2014 10:20:00  +0530
+
+scribe-server-hdfs-orig (0.5) precise; urgency=low
+
+  * Make changes in scribe to build on ubuntu12.04 (precise)
+
+ -- Platform Engineering <platform-engg@inmobi.com>  Mon, 23 Jun 2014 17:12:00  +0530
 
 scribe-server-hdfs-orig (0.4.4) lucid; urgency=low
 

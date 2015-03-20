@@ -11,7 +11,7 @@
 
 override_dh_auto_configure:
 	[ -f configure ] || ./bootstrap.sh
-	LDFLAGS="-L/usr/lib/jvm/java-6-openjdk/jre/lib/amd64/server/" CPPFLAGS="-I/usr/lib/jvm/java-1.6.0-openjdk/include" LIBS="-lboost_thread-mt" $(CURDIR)/configure --prefix=/usr --sysconfdir=/etc --localstatedir=/var --with-thriftpath=/usr --with-fb303path=/usr --enable-hdfs --with-hadooppath=/usr
+	LDFLAGS="-L/usr/lib/jvm/java-6-openjdk/jre/lib/amd64/server/" CPPFLAGS="-I/usr/lib/jvm/java-1.6.0-openjdk/include -DHAVE_INTTYPES_H -DHAVE_NETINET_IN_H" LIBS="-lboost_system-mt -lboost_filesystem-mt -lboost_thread-mt" $(CURDIR)/configure --prefix=/usr --sysconfdir=/etc --localstatedir=/var --with-thriftpath=/usr --with-fb303path=/usr --enable-hdfs --with-hadooppath=/usr
 
 %:
 	dh  $@

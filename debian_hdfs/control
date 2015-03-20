@@ -2,12 +2,12 @@ Source: scribe-server-hdfs-orig
 Section: unknown
 Priority: extra
 Maintainer: Platform Engineering <platform-engg@inmobi.com>
-Build-Depends: debhelper (>= 7), autotools-dev, libthrift-dev, libfb303, libboost-system-dev, libboost-filesystem-dev, libc6-dev, libstdc++6-4.4-dev, libevent-dev, libhdfs0-dev, thrift-compiler
+Build-Depends: debhelper (>= 7), autotools-dev, inmobi-techplatform-libthrift-dev, inmobi-techplatform-libfb303, libboost-system-dev (>= 1.46), libboost-filesystem-dev (>= 1.46), libboost-thread-dev (>=1.46), libc6-dev, libstdc++6-4.4-dev, libevent-dev, libhdfs0-dev, inmobi-techplatform-thrift-compiler
 Standards-Version: 3.8.3
 Homepage: <insert the upstream URL, if relevant>
 
 Package: scribe-server-hdfs-orig
 Architecture: any
-Depends: ${shlibs:Depends}, ${misc:Depends}
+Depends: ${shlibs:Depends}, ${misc:Depends}, inmobi-techplatform-libthrift-dev, inmobi-techplatform-libfb303, inmobi-techplatform-thrift-compiler, libboost-thread-dev (>=1.46)
 Description: scribe server with HDFS support, installs in /usr
  <insert long description, indented with spaces>
