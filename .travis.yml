@@ -1,0 +1,19 @@
+language: cpp
+
+sudo: required
+
+os:
+  - linux
+
+compiler:
+  - gcc
+
+before_script:
+  - sudo apt-get update -qq
+  - sudo apt-get update && apt-get install -y git curl make autoconf automake flex bison libtool libevent-dev pkg-config libssl-dev libboost-all-dev libbz2-dev build-essential g++ python-dev git
+  - git clone https://github.com/apache/thrift.git /thrift_src
+  - cd thrift_src && git checkout 0.9.1 && ./bootstrap.sh && ./configure && make && make install
+  - cd thrift_src/contrib/fb303 && ./bootstrap.sh && ./configure CPPFLAGS="-DHAVE_INTTYPES_H -DHAVE_NETINET_IN_H" && make && make install
+
+script:
+  - ./configure CPPFLAGS="-DHAVE_INTTYPES_H -DHAVE_NETINET_IN_H -DBOOST_FILESYSTEM_VERSION=2" LIBS="-lboost_system -lboost_filesystem" && make && make install

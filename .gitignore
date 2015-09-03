@@ -9,3 +9,5 @@ install-sh
 missing
 mkinstalldirs
 *.o
+.idea
+build
