@@ -86,6 +86,17 @@ bool StoreConf::getUnsigned(const string& intName,
   }
 }
 
+bool StoreConf::getSigned(const string& intName,
+                          signed long int& _return) const {
+  string str;
+  if (getString(intName, str)) {
+    _return = strtol(str.c_str(), NULL, 0);
+    return true;
+  } else {
+    return false;
+  }
+}
+
 bool StoreConf::getUnsignedLongLong(const string& llName,
                                     unsigned long long& _return) const {
   string str;
